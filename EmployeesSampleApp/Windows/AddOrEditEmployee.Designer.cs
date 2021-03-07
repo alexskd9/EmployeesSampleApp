@@ -194,6 +194,8 @@ namespace EmployeesSampleApp.Windows
             this.Font = new System.Drawing.Font("Sylfaen", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.MaximizeBox = false;
+            this.MaximumSize = new System.Drawing.Size(325, 320);
+            this.MinimumSize = new System.Drawing.Size(325, 320);
             this.Name = "AddOrEditEmployee";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Load += new System.EventHandler(this.AddOrEditEmployee_Load);

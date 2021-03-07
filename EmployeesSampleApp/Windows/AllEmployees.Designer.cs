@@ -170,7 +170,7 @@ namespace EmployeesSampleApp.Windows
             // PageLimit
             // 
             this.PageLimit.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.PageLimit.Location = new System.Drawing.Point(555, 519);
+            this.PageLimit.Location = new System.Drawing.Point(507, 519);
             this.PageLimit.Minimum = new decimal(new int[] {
             1,
             0,
@@ -190,7 +190,7 @@ namespace EmployeesSampleApp.Windows
             // label5
             // 
             this.label5.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.label5.Location = new System.Drawing.Point(433, 521);
+            this.label5.Location = new System.Drawing.Point(385, 521);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(116, 23);
             this.label5.TabIndex = 6;
