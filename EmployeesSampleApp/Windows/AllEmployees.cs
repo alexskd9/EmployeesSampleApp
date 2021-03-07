@@ -17,7 +17,9 @@ namespace EmployeesSampleApp.Windows
         public AllEmployees()
         {
             InitializeComponent();
-            
+            GetRanks();
+            MinSalaryFilter.Controls[0].Visible = false;
+            MaxSalaryFilter.Controls[0].Visible = false;
         }
 
         private void AddNew_Click(object sender, EventArgs e)
@@ -35,6 +37,8 @@ namespace EmployeesSampleApp.Windows
 
         public void ShowAll()
         {
+            DataRowView drv = (DataRowView)RankFilter.SelectedItem;
+
             GridView.DataSource = null;
             GridView.Rows.Clear();
             GridView.Columns.Clear();
@@ -42,7 +46,15 @@ namespace EmployeesSampleApp.Windows
             using (SqlConnection connection = new SqlConnection(connString))
             {
                 connection.Open();
-                SqlDataAdapter adapter = new SqlDataAdapter(GetSql(), connection);
+                SqlDataAdapter adapter = new SqlDataAdapter("FilterEmployees", connection);
+                adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
+                adapter.SelectCommand.Parameters.Add("@pageNumber", SqlDbType.Int).Value = pageNumber;
+                adapter.SelectCommand.Parameters.Add("@pageSize", SqlDbType.Int).Value = pageSize;
+                adapter.SelectCommand.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50).Value = FirstNameFilter.Text;
+                adapter.SelectCommand.Parameters.Add("@LastName", SqlDbType.NVarChar, 50).Value = LastNameFilter.Text;
+                adapter.SelectCommand.Parameters.Add("@Rank", SqlDbType.Int).Value = drv.Row[0];
+                adapter.SelectCommand.Parameters.Add("@MinSalary", SqlDbType.Money).Value = MinSalaryFilter.Value;
+                adapter.SelectCommand.Parameters.Add("@MaxSalary", SqlDbType.Money).Value = MaxSalaryFilter.Value;
 
                 ds = new DataSet();
                 adapter.Fill(ds, "Employees");
@@ -194,6 +206,53 @@ namespace EmployeesSampleApp.Windows
                 CurrentPage.Text = currentPage.ToString();
             }
             
+        }
+
+        private void FirstNameFilter_TextChanged(object sender, EventArgs e)
+        {
+            ShowAll();
+        }
+
+        private void LastNameFilter_TextChanged(object sender, EventArgs e)
+        {
+            ShowAll();
+        }
+
+        private void RankFilter_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ShowAll();
+        }
+
+        private void MinSalaryFilter_ValueChanged(object sender, EventArgs e)
+        {
+            ShowAll();
+        }
+
+        private void MaxSalaryFilter_ValueChanged(object sender, EventArgs e)
+        {
+            ShowAll();
+        }
+
+        public void GetRanks()
+        {
+            using (SqlConnection connection = new SqlConnection(connString))
+            {
+                using (SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Ranks", connection))
+                {
+                    DataTable dt = new DataTable();
+                    adapter.Fill(dt);
+
+                    DataRow row = dt.NewRow();
+                    row[0] = 0;
+                    row[1] = "აირჩიეთ როლი";
+                    dt.Rows.InsertAt(row, 0);
+
+                    RankFilter.DataSource = dt;
+                    RankFilter.DisplayMember = "Name";
+                    RankFilter.ValueMember = "RankId";
+
+                }
+            }
         }
     }
 }
