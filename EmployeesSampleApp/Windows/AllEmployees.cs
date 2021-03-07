@@ -1,23 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace EmployeesSampleApp.Windows
 {
     public partial class AllEmployees : Form
     {
+        int pageSize = 10;
+        int pageNumber = 0;
+        int currentPage, totalPages;
+        DataSet ds;
+        SqlDataAdapter adapter;
         private readonly string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
         public AllEmployees()
         {
             InitializeComponent();
+            
         }
 
         private void AddNew_Click(object sender, EventArgs e)
@@ -42,11 +42,11 @@ namespace EmployeesSampleApp.Windows
             using (SqlConnection connection = new SqlConnection(connString))
             {
                 connection.Open();
-                SqlDataAdapter adapter = new SqlDataAdapter("SELECT e.EmployeeId, e.FirstName, e.LastName, e.MobileNumber, r.RankId, r.Name, e.Salary, e.Status FROM Employees e INNER JOIN Ranks r ON e.Rank = r.RankId ", connection);
+                SqlDataAdapter adapter = new SqlDataAdapter(GetSql(), connection);
 
-                DataSet ds = new DataSet();
-                adapter.Fill(ds);
-                GridView.DataSource = ds.Tables[0];                
+                ds = new DataSet();
+                adapter.Fill(ds, "Employees");
+                GridView.DataSource = ds.Tables[0];
             }
             GridView.Columns["EmployeeId"].HeaderText = "Id";
             GridView.Columns["FirstName"].HeaderText = "სახელი";
@@ -73,7 +73,20 @@ namespace EmployeesSampleApp.Windows
             col2.HeaderText = "";
             col2.Text = "წაშლა";
             col2.Name = "Delete";
-            GridView.Columns.Add(col2);            
+            GridView.Columns.Add(col2);
+
+            using (SqlConnection connection = new SqlConnection(connString))
+            {
+                connection.Open();
+                SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM Employees", connection);
+                object result = command.ExecuteScalar();
+                totalPages = ((int)result - 1) / pageSize + 1;
+                TotalPages.Text = totalPages.ToString();
+                TotalRecords.Text = result.ToString();
+                PageLimit.Text = pageSize.ToString();
+            }
+            currentPage = 1;
+            CurrentPage.Text = currentPage.ToString();
         }
 
         private void GridView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -131,6 +144,56 @@ namespace EmployeesSampleApp.Windows
             aoee.Status.Checked = (bool)GridView.CurrentRow.Cells[7].Value;
 
             return aoee;
+        }
+
+        private string GetSql()
+        {
+            return "SELECT e.EmployeeId, e.FirstName, e.LastName, e.MobileNumber, r.RankId, r.Name, e.Salary, e.Status FROM Employees e INNER JOIN Ranks r ON e.Rank = r.RankId ORDER BY EmployeeId OFFSET ((" + pageNumber + ") * " + pageSize + ") " + "ROWS FETCH NEXT " + pageSize + "ROWS ONLY";
+        }
+
+        private void Previous_Click(object sender, EventArgs e)
+        {
+            if (pageNumber == 0) return;
+            pageNumber--;
+
+            using (SqlConnection connection = new SqlConnection(connString))
+            {
+                adapter = new SqlDataAdapter(GetSql(), connection);
+
+                ds.Tables["Employees"].Rows.Clear();
+
+                adapter.Fill(ds, "Employees");
+                currentPage--;
+                CurrentPage.Text = currentPage.ToString();
+            }
+        }
+
+
+        private void PageLimit_ValueChanged(object sender, EventArgs e)
+        {
+            if(PageLimit.Value != 0)
+            {
+                pageSize = (int)PageLimit.Value;
+                ShowAll();
+            }
+        }
+
+        private void Next_Click(object sender, EventArgs e)
+        {
+            if (ds.Tables["Employees"].Rows.Count < pageSize) return;
+            if (totalPages == currentPage) return;
+            pageNumber++;
+            using (SqlConnection connection = new SqlConnection(connString))
+            {
+                adapter = new SqlDataAdapter(GetSql(), connection);
+
+                ds.Tables["Employees"].Rows.Clear();
+
+                adapter.Fill(ds, "Employees");
+                currentPage++;
+                CurrentPage.Text = currentPage.ToString();
+            }
+            
         }
     }
 }
