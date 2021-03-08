@@ -17,13 +17,13 @@ namespace EmployeesSampleApp.Repository
         public bool CheckIfDBExists()
         {
             bool exists = false;
-            using(SqlConnection connection = new SqlConnection(connString))
+            using (SqlConnection connection = new SqlConnection(connString))
             {
                 connection.Open();
                 string query = "SELECT COUNT(*) FROM master.dbo.sysdatabases where name = 'EmployeesDB'";
                 SqlCommand command = new SqlCommand(query, connection);
                 object res = command.ExecuteScalar();
-                if((int)res == 1)
+                if ((int)res == 1)
                 {
                     exists = true;
                 }
@@ -40,8 +40,15 @@ namespace EmployeesSampleApp.Repository
             using (SqlConnection connection = new SqlConnection(connString))
             {
                 connection.Open();
-                SqlCommand command = new SqlCommand(commandStrings.ToString(), connection);
-                command.ExecuteNonQuery();
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    foreach (var item in commandStrings)
+                    {
+                        command.CommandText = item;
+                        command.ExecuteNonQuery();
+                    }
+                }
             }
             return created;
         }
