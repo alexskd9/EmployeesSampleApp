@@ -1,14 +1,15 @@
-﻿using System;
-using System.Configuration;
+﻿using EmployeesSampleApp.Models;
+using EmployeesSampleApp.Repository;
+using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Windows.Forms;
 
 namespace EmployeesSampleApp.Windows
 {
     public partial class AddOrEditEmployee : Form
     {
-        private readonly string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+        private EmployeeRepository employeeRepository = new EmployeeRepository();
+        private RankRepository rankRepository = new RankRepository();
         public AddOrEditEmployee()
         {
             InitializeComponent();            
@@ -31,13 +32,17 @@ namespace EmployeesSampleApp.Windows
                 }
                 else
                 {
-                    string query = $"INSERT INTO Employees(FirstName, LastName, MobileNumber, Rank, Salary, Status) VALUES(N'{FirstName.Text}', N'{LastName.Text}', N'{MobileNumber.Text}', {(int)Rank.SelectedValue}, N'{Salary.Text}', N'{Status.Checked}')";
-                    using (SqlConnection connection = new SqlConnection(connString))
+                    EmployeeModel employee = new EmployeeModel()
                     {
-                        connection.Open();
-                        SqlCommand command = new SqlCommand(query, connection);
-                        command.ExecuteNonQuery();
-                    }
+                        FirstName = FirstName.Text,
+                        LastName = LastName.Text,
+                        MobileNumber = MobileNumber.Text,
+                        Rank = (int)Rank.SelectedValue,
+                        Salary = Convert.ToDecimal(Salary.Text),
+                        Status = Status.Checked
+                    };
+
+                    employeeRepository.AddEmployee(employee);
                 }
             }
             else if(Execute.Text == "რედაქტირება")
@@ -49,13 +54,18 @@ namespace EmployeesSampleApp.Windows
                 }
                 else
                 {
-                    string query = $"UPDATE Employees SET FirstName = N'{FirstName.Text}', LastName = N'{LastName.Text}', MobileNumber = N'{MobileNumber.Text}', Rank = {(int)Rank.SelectedValue}, Salary = N'{Salary.Text}', Status = N'{Status.Checked}' WHERE EmployeeId = {EmployeeId.Text}";
-                    using (SqlConnection connection = new SqlConnection(connString))
+                    EmployeeModel employee = new EmployeeModel()
                     {
-                        connection.Open();
-                        SqlCommand command = new SqlCommand(query, connection);
-                        command.ExecuteNonQuery();
-                    }
+                        Id = Convert.ToInt32(EmployeeId.Text),
+                        FirstName = FirstName.Text,
+                        LastName = LastName.Text,
+                        MobileNumber = MobileNumber.Text,
+                        Rank = (int)Rank.SelectedValue,
+                        Salary = Convert.ToDecimal(Salary.Text),
+                        Status = Status.Checked
+                    };
+
+                    employeeRepository.EditEmployee(employee);
                 }
             }
             ae.ShowAll();
@@ -75,28 +85,28 @@ namespace EmployeesSampleApp.Windows
             Status.Enabled = true;
             Execute.Visible = true;
             Edit.Visible = false;
+            DeleteEmployee.Visible = true;
         }
 
         public void GetRanks()
         {
-            using (SqlConnection connection = new SqlConnection(connString))
+            DataTable dt = rankRepository.AllRanks();
+
+            Rank.DataSource = dt;
+            Rank.DisplayMember = "Name";
+            Rank.ValueMember = "RankId";
+        }
+
+        private void DeleteEmployee_Click(object sender, EventArgs e)
+        {
+            AllEmployees ae = (AllEmployees)this.Owner;
+            DialogResult res = MessageBox.Show("გსურთ მონიშნული თანამრომლის წაშლა?", "ყურადღება", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (res == DialogResult.Yes)
             {
-                using (SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Ranks", connection))
-                {
-                    DataTable dt = new DataTable();
-                    adapter.Fill(dt);
-
-                    DataRow row = dt.NewRow();
-                    row[0] = 0;
-                    row[1] = "აირჩიეთ როლი";
-                    dt.Rows.InsertAt(row, 0);
-
-                    Rank.DataSource = dt;
-                    Rank.DisplayMember = "Name";
-                    Rank.ValueMember = "RankId";
-
-                }
+                employeeRepository.DeleteEmployee(Convert.ToInt32(EmployeeId.Text));
             }
+            ae.ShowAll();
+            Close();
         }
     }
 }

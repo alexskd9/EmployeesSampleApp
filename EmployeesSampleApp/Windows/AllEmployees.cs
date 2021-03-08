@@ -1,4 +1,6 @@
-﻿using System;
+﻿using EmployeesSampleApp.Models;
+using EmployeesSampleApp.Repository;
+using System;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
@@ -13,6 +15,9 @@ namespace EmployeesSampleApp.Windows
         int currentPage, totalPages;
         DataSet ds;
         SqlDataAdapter adapter;
+        private EmployeeRepository employeeRepository = new EmployeeRepository();
+        private RankRepository rankRepository = new RankRepository();
+        private DatabaseRepository databaseRepository = new DatabaseRepository();
         private readonly string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
         public AllEmployees()
         {
@@ -43,23 +48,18 @@ namespace EmployeesSampleApp.Windows
             GridView.Rows.Clear();
             GridView.Columns.Clear();
             GridView.Refresh();
-            using (SqlConnection connection = new SqlConnection(connString))
-            {
-                connection.Open();
-                SqlDataAdapter adapter = new SqlDataAdapter("FilterEmployees", connection);
-                adapter.SelectCommand.CommandType = CommandType.StoredProcedure;
-                adapter.SelectCommand.Parameters.Add("@pageNumber", SqlDbType.Int).Value = pageNumber;
-                adapter.SelectCommand.Parameters.Add("@pageSize", SqlDbType.Int).Value = pageSize;
-                adapter.SelectCommand.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50).Value = FirstNameFilter.Text;
-                adapter.SelectCommand.Parameters.Add("@LastName", SqlDbType.NVarChar, 50).Value = LastNameFilter.Text;
-                adapter.SelectCommand.Parameters.Add("@Rank", SqlDbType.Int).Value = drv.Row[0];
-                adapter.SelectCommand.Parameters.Add("@MinSalary", SqlDbType.Money).Value = MinSalaryFilter.Value;
-                adapter.SelectCommand.Parameters.Add("@MaxSalary", SqlDbType.Money).Value = MaxSalaryFilter.Value;
 
-                ds = new DataSet();
-                adapter.Fill(ds, "Employees");
-                GridView.DataSource = ds.Tables[0];
-            }
+            FilterModel filter = new FilterModel()
+            {
+                FirstName = FirstNameFilter.Text,
+                LastName = LastNameFilter.Text,
+                Rank = (int)drv.Row[0],
+                MinSalary = MinSalaryFilter.Value,
+                MaxSalary = MaxSalaryFilter.Value
+            };
+
+            GridView.DataSource = employeeRepository.GetAllEmployees(pageNumber, pageSize, filter).Tables[0];
+
             GridView.Columns["EmployeeId"].HeaderText = "Id";
             GridView.Columns["FirstName"].HeaderText = "სახელი";
             GridView.Columns["LastName"].HeaderText = "გვარი";
@@ -87,16 +87,12 @@ namespace EmployeesSampleApp.Windows
             col2.Name = "Delete";
             GridView.Columns.Add(col2);
 
-            using (SqlConnection connection = new SqlConnection(connString))
-            {
-                connection.Open();
-                SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM Employees", connection);
-                object result = command.ExecuteScalar();
-                totalPages = ((int)result - 1) / pageSize + 1;
-                TotalPages.Text = totalPages.ToString();
-                TotalRecords.Text = result.ToString();
-                PageLimit.Text = pageSize.ToString();
-            }
+            int result = employeeRepository.CountAllEmployees();
+
+            totalPages = (result - 1) / pageSize + 1;
+            TotalPages.Text = totalPages.ToString();
+            PageLimit.Text = pageSize.ToString();
+            TotalRecords.Text = GridView.Rows.Count.ToString();
             currentPage = 1;
             CurrentPage.Text = currentPage.ToString();
         }
@@ -123,15 +119,10 @@ namespace EmployeesSampleApp.Windows
             if (GridView.Columns[e.ColumnIndex].Name == "Delete")
             {
                 DialogResult res = MessageBox.Show("გსურთ მონიშნული თანამრომლის წაშლა?", "ყურადღება", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if(res == DialogResult.Yes)
+                if (res == DialogResult.Yes)
                 {
-                    using(SqlConnection connection = new SqlConnection(connString))
-                    {
-                        connection.Open();
-                        SqlCommand command = new SqlCommand($"DELETE FROM Employees WHERE EmployeeId = {GridView.CurrentRow.Cells[0].Value}", connection);
-                        command.ExecuteNonQuery();
-                        ShowAll();
-                    }
+                    employeeRepository.DeleteEmployee((int)GridView.CurrentRow.Cells[0].Value);
+                    ShowAll();
                 }
             }
             else if (GridView.Columns[e.ColumnIndex].Name == "Edit")
@@ -140,6 +131,7 @@ namespace EmployeesSampleApp.Windows
 
                 aoee.Text = "რედაქტირება";
                 aoee.Execute.Text = "რედაქტირება";
+                aoee.DeleteEmployee.Visible = true;
                 aoee.Show(this);
             }
         }
@@ -183,7 +175,7 @@ namespace EmployeesSampleApp.Windows
 
         private void PageLimit_ValueChanged(object sender, EventArgs e)
         {
-            if(PageLimit.Value != 0)
+            if (PageLimit.Value != 0)
             {
                 pageSize = (int)PageLimit.Value;
                 ShowAll();
@@ -205,7 +197,7 @@ namespace EmployeesSampleApp.Windows
                 currentPage++;
                 CurrentPage.Text = currentPage.ToString();
             }
-            
+
         }
 
         private void FirstNameFilter_TextChanged(object sender, EventArgs e)
@@ -235,24 +227,11 @@ namespace EmployeesSampleApp.Windows
 
         public void GetRanks()
         {
-            using (SqlConnection connection = new SqlConnection(connString))
-            {
-                using (SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM Ranks", connection))
-                {
-                    DataTable dt = new DataTable();
-                    adapter.Fill(dt);
+            DataTable dt = rankRepository.AllRanks();
 
-                    DataRow row = dt.NewRow();
-                    row[0] = 0;
-                    row[1] = "აირჩიეთ როლი";
-                    dt.Rows.InsertAt(row, 0);
-
-                    RankFilter.DataSource = dt;
-                    RankFilter.DisplayMember = "Name";
-                    RankFilter.ValueMember = "RankId";
-
-                }
-            }
+            RankFilter.DataSource = dt;
+            RankFilter.DisplayMember = "Name";
+            RankFilter.ValueMember = "RankId";
         }
     }
 }

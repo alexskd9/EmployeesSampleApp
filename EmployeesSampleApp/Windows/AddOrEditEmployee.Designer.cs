@@ -44,6 +44,7 @@ namespace EmployeesSampleApp.Windows
             this.Rank = new System.Windows.Forms.ComboBox();
             this.Edit = new System.Windows.Forms.Button();
             this.EmployeeId = new System.Windows.Forms.TextBox();
+            this.DeleteEmployee = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -171,11 +172,23 @@ namespace EmployeesSampleApp.Windows
             this.EmployeeId.TabIndex = 7;
             this.EmployeeId.Visible = false;
             // 
+            // DeleteEmployee
+            // 
+            this.DeleteEmployee.Location = new System.Drawing.Point(118, 246);
+            this.DeleteEmployee.Name = "DeleteEmployee";
+            this.DeleteEmployee.Size = new System.Drawing.Size(75, 23);
+            this.DeleteEmployee.TabIndex = 8;
+            this.DeleteEmployee.Text = "წაშლა";
+            this.DeleteEmployee.UseVisualStyleBackColor = true;
+            this.DeleteEmployee.Visible = false;
+            this.DeleteEmployee.Click += new System.EventHandler(this.DeleteEmployee_Click);
+            // 
             // AddOrEditEmployee
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(309, 281);
+            this.Controls.Add(this.DeleteEmployee);
             this.Controls.Add(this.EmployeeId);
             this.Controls.Add(this.Rank);
             this.Controls.Add(this.Edit);
@@ -221,5 +234,6 @@ namespace EmployeesSampleApp.Windows
         public System.Windows.Forms.ComboBox Rank;
         public System.Windows.Forms.Button Edit;
         public System.Windows.Forms.TextBox EmployeeId;
+        public System.Windows.Forms.Button DeleteEmployee;
     }
 }

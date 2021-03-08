@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 
 namespace EmployeesSampleApp.Models
 {
-    public class EmployeeModel
+    public class FilterModel
     {
-        public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string MobileNumber { get; set; }
         public int Rank { get; set; }
-        public decimal Salary { get; set; }
-        public bool Status { get; set; }
+        public decimal MinSalary { get; set; }
+        public decimal MaxSalary { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using EmployeesSampleApp.Windows;
+﻿using EmployeesSampleApp.Repository;
+using EmployeesSampleApp.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace EmployeesSampleApp
 {
     static class Program
     {
+        private static DatabaseRepository databaseRepository = new DatabaseRepository();
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -17,6 +19,12 @@ namespace EmployeesSampleApp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            bool exists = databaseRepository.CheckIfDBExists();
+            if (!exists)
+            {
+                databaseRepository.CreateDatabase();
+            }
             Application.Run(new AllEmployees());
         }
     }
