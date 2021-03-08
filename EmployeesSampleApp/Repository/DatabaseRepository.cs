@@ -20,7 +20,7 @@ namespace EmployeesSampleApp.Repository
             using(SqlConnection connection = new SqlConnection(connString))
             {
                 connection.Open();
-                string query = "SELECT COUNT(*) FROM master.dbo.sysdatabases where name = 'EmployeesDB1'";
+                string query = "SELECT COUNT(*) FROM master.dbo.sysdatabases where name = 'EmployeesDB'";
                 SqlCommand command = new SqlCommand(query, connection);
                 object res = command.ExecuteScalar();
                 if((int)res == 1)
