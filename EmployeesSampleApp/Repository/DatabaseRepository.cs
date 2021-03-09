@@ -14,6 +14,7 @@ namespace EmployeesSampleApp.Repository
     {
         private static readonly string connString = ConfigurationManager.ConnectionStrings["MasterConnection"].ConnectionString;
 
+        //ხდება მონაცემთა ბაზის არსებობის შემოწმება
         public bool CheckIfDBExists()
         {
             bool exists = false;
@@ -31,6 +32,7 @@ namespace EmployeesSampleApp.Repository
             return exists;
         }
 
+        //მონაცემა ბაზის შექმნა. SQL სკრიპტი შეიცავს ბევრ GO-ს, რომლის გადაცემის დროს გავდივართ exception-ზე. ამისათვის ვიყენებთ regular expressions, ვყოფთ სკრიპტს go-ს მიხედვით და ეტაპობრივად ვასრულებთ მას
         public bool CreateDatabase()
         {
             bool created = false;

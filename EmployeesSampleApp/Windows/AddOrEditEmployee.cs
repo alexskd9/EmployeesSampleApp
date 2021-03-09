@@ -15,12 +15,14 @@ namespace EmployeesSampleApp.Windows
             InitializeComponent();            
         }
 
+        //თუ ხდება ახალი ჩანაწერის დამატება, მაშინ როლები მოდის ბაზიდან. რედაქტირების დროს გადაეცემა მთავარი გვერდიდან
         private void AddOrEditEmployee_Load(object sender, EventArgs e)
         {
             if (Execute.Text == "დამატება")
                 GetRanks();
         }
 
+        //(AllEmployees)this.Owner დახმარებით გვაქვს საშუალება განვახორციელოთ რამე მოქმედება სხვა გვერდზე (კონკრეტუალ შემთხვევაში ამ ფანჯრის დახურვამდე ხდება მთავარი გვერდის განახლება)
         private void Execute_Click(object sender, EventArgs e)
         {
             AllEmployees ae = (AllEmployees)this.Owner;
@@ -73,6 +75,7 @@ namespace EmployeesSampleApp.Windows
             Close();
         }
 
+        //თუ ფორმა იყო გახსნილი ორმაგი კლიკით, მასში ყველა ველი არააქტიურია. ფორმაში რედაქტირების დაჭერის დროს ველები აქტიურდება
         private void Edit_Click(object sender, EventArgs e)
         {
             Text = "რედაქტირება";
@@ -98,6 +101,7 @@ namespace EmployeesSampleApp.Windows
             Rank.ValueMember = "RankId";
         }
 
+        //თანამშრომლის წაშლის დროს გამოდის დამადასტურებელი ფანჯარა
         private void DeleteEmployee_Click(object sender, EventArgs e)
         {
             AllEmployees ae = (AllEmployees)this.Owner;

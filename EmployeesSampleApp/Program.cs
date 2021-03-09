@@ -20,6 +20,7 @@ namespace EmployeesSampleApp
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            //პროგრამის გაშვებისას მოწმდება მონაცემთა ბაზის არსებობა. თუ ის არ არსებობს, მაშინ ხდება მისი შექმნა
             bool exists = databaseRepository.CheckIfDBExists();
             if (!exists)
             {

@@ -9,6 +9,7 @@ namespace EmployeesSampleApp.Repository
     {
         private static readonly string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
 
+        //ძირითადი მეთოდი, რომელსაც მოაქვს თანამშრომლები ბაზიდან. გამოიყენება შენახული პროცედურა. თანამშრომლების სიასთან ერთად მოაქვს ჩანაწერების რაოდენობა
         public DataSet GetAllEmployees(int pageNumber, int pageSize, FilterModel filter, out int totalRows)
         {
             totalRows = 0;
@@ -25,7 +26,8 @@ namespace EmployeesSampleApp.Repository
                 adapter.SelectCommand.Parameters.Add("@Rank", SqlDbType.Int).Value = filter.Rank;
                 adapter.SelectCommand.Parameters.Add("@MinSalary", SqlDbType.Money).Value = filter.MinSalary;
                 adapter.SelectCommand.Parameters.Add("@MaxSalary", SqlDbType.Money).Value = filter.MaxSalary;
-
+                
+                //output პარამეტრის განსაზღვრა                
                 SqlParameter total = new SqlParameter
                 {
                     ParameterName = "@totalRows",
@@ -40,6 +42,7 @@ namespace EmployeesSampleApp.Repository
             return ds;
         }
 
+        //თანამშრომლის დამატება
         public void AddEmployee(EmployeeModel employee)
         {
             string query = $"INSERT INTO Employees(FirstName, LastName, MobileNumber, Rank, Salary, Status) VALUES(N'{employee.FirstName}', N'{employee.LastName}', N'{employee.MobileNumber}', {employee.Rank}, N'{employee.Salary}', N'{employee.Status}')";
@@ -51,6 +54,7 @@ namespace EmployeesSampleApp.Repository
             }
         }
 
+        //თანამშრომლის რედაქტირება
         public void EditEmployee(EmployeeModel employee)
         {
             string query = $"UPDATE Employees SET FirstName = N'{employee.FirstName}', LastName = N'{employee.LastName}', MobileNumber = N'{employee.MobileNumber}', Rank = {employee.Rank}, Salary = N'{employee.Salary}', Status = N'{employee.Status}' WHERE EmployeeId = {employee.Id}";
@@ -62,6 +66,7 @@ namespace EmployeesSampleApp.Repository
             }
         }
 
+        //თანამშრომლის წაშლა
         public void DeleteEmployee(int id)
         {
             using (SqlConnection connection = new SqlConnection(connString))

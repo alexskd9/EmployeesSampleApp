@@ -2,7 +2,6 @@
 using EmployeesSampleApp.Repository;
 using System;
 using System.Data;
-using System.Windows.Controls;
 using System.Windows.Forms;
 
 namespace EmployeesSampleApp.Windows
@@ -19,7 +18,9 @@ namespace EmployeesSampleApp.Windows
         public AllEmployees()
         {
             InitializeComponent();
+            //როლების ფილტრისთვის მონაცემების ბაზიდან წამოღება
             GetRanks();
+            //ხელფასის დიაპაზონის ისრების დამალვა
             MinSalaryFilter.Controls[0].Visible = false;
             MaxSalaryFilter.Controls[0].Visible = false;
         }
@@ -37,6 +38,7 @@ namespace EmployeesSampleApp.Windows
             ShowAll();
         }
 
+        //ნებისმიერ ოპერაციაზე ხდება ამ ფუნქციის გამოძახება. აქედან კონტროლდენა DataGridView-ს სვეტები, გვერდები, გვერდზე მაქსიმალური რაოდენობის ჩანაწერების ჩვენება და გვერდების ნუმერაცია
         public void ShowAll()
         {
             GridView.DataSource = null;
@@ -53,6 +55,7 @@ namespace EmployeesSampleApp.Windows
             ds = employeeRepository.GetAllEmployees(pageNumber, pageSize, filter, out int totalRows);
             GridView.DataSource = ds.Tables[0];
 
+            #region ცხრილის სვეტები
             GridView.Columns["EmployeeId"].HeaderText = "Id";
             GridView.Columns["FirstName"].HeaderText = "სახელი";
             GridView.Columns["LastName"].HeaderText = "გვარი";
@@ -79,6 +82,7 @@ namespace EmployeesSampleApp.Windows
             col2.Text = "წაშლა";
             col2.Name = "Delete";
             GridView.Columns.Add(col2);
+            #endregion
 
             totalPages = (totalRows - 1) / pageSize + 1;
             TotalPages.Text = totalPages.ToString();
@@ -87,6 +91,7 @@ namespace EmployeesSampleApp.Windows
             CurrentPage.Text = currentPage.ToString();
         }
 
+        //ორმაგი კლიკის დროს დეტალების ფანჯარაში ყველა ველი უნდა იყოს არააქტიური
         private void GridView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             AddOrEditEmployee aoee = FillFields();
@@ -104,14 +109,17 @@ namespace EmployeesSampleApp.Windows
             aoee.Show(this);
         }
 
+        //ცხრილის ბოლოს ღილაკების (რედაქტირება და წაშლა) კლიკის დამუშავება
         private void GridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (GridView.Columns[e.ColumnIndex].Name == "Delete")
             {
+                //წაშლის შემთხვევაში გამოდის დამადასტურებელი ფანჯარა
                 DialogResult res = MessageBox.Show("გსურთ მონიშნული თანამრომლის წაშლა?", "ყურადღება", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (res == DialogResult.Yes)
                 {
                     employeeRepository.DeleteEmployee((int)GridView.CurrentRow.Cells[0].Value);
+                    ResetValues();
                     ShowAll();
                 }
             }
@@ -126,6 +134,7 @@ namespace EmployeesSampleApp.Windows
             }
         }
 
+        //რედაქტირების დროს რედაქტირების ფანჯარაში ყველა ველი ივსება DataGridView-დან
         private AddOrEditEmployee FillFields()
         {
             AddOrEditEmployee aoee = new AddOrEditEmployee();
@@ -141,15 +150,6 @@ namespace EmployeesSampleApp.Windows
             return aoee;
         }
 
-        private void Previous_Click(object sender, EventArgs e)
-        {
-            if (pageNumber == 0) return;
-            currentPage--;
-            pageNumber--;
-            ShowAll();
-        }
-
-
         private void PageLimit_ValueChanged(object sender, EventArgs e)
         {
             if (PageLimit.Value != 0)
@@ -159,16 +159,27 @@ namespace EmployeesSampleApp.Windows
             }
         }
 
+        private void Previous_Click(object sender, EventArgs e)
+        {
+            if (pageNumber == 0) return;
+            currentPage--;
+            pageNumber--;
+            ShowAll();
+        }
         private void Next_Click(object sender, EventArgs e)
         {
-            if (ds.Tables["Employees"].Rows.Count < pageSize) return;
-            if (totalPages == currentPage) return;
+            if (ds.Tables["Employees"].Rows.Count < pageSize) 
+                return;
+            if (totalPages == currentPage) 
+                return;
             currentPage++;
             pageNumber++;
             ShowAll();
 
         }
 
+        //ფილტრის ნებისმიერი ველის რედაქტირების დროს ხდება DataGridView-ს გაწმენდა და მონაცემების ხელახლა წამოღება ბაზიდან
+        #region ფილტრები
         private void FirstNameFilter_TextChanged(object sender, EventArgs e)
         {
             ResetValues();
@@ -198,7 +209,9 @@ namespace EmployeesSampleApp.Windows
             ResetValues();
             ShowAll();
         }
+        #endregion
 
+        //გამოიყენება როლების ფილტრის combobox-ში მონაცემების ჩასაწერად
         public void GetRanks()
         {
             DataTable dt = rankRepository.AllRanks();
@@ -208,6 +221,7 @@ namespace EmployeesSampleApp.Windows
             RankFilter.ValueMember = "RankId";
         }
 
+        //ფილტრების გადასაცემად ხდება მონაცემების ერთ კლასში "შეფუთვა"
         private FilterModel GetFilters()
         {
             DataRowView drv = (DataRowView)RankFilter.SelectedItem;
@@ -221,6 +235,7 @@ namespace EmployeesSampleApp.Windows
             };
         }
 
+        //ფილტრის გამოყენებისას გადავდივართ ცხრილის პირველ გვერდზე
         private void ResetValues()
         {
             pageNumber = 0;

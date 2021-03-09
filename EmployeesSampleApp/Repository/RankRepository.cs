@@ -7,6 +7,8 @@ namespace EmployeesSampleApp.Repository
     public class RankRepository
     {
         private static readonly string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+        
+        //მოაქვს როლები ბაზიდან და ამატებს ერთ სტრიქონს, "აირჩიეთ ყველა"-ს
         public DataTable AllRanks()
         {
             DataTable dt = new DataTable();
