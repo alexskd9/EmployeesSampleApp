@@ -14,10 +14,8 @@ namespace EmployeesSampleApp.Windows
         int pageNumber = 0;
         int currentPage, totalPages;
         DataSet ds;
-        SqlDataAdapter adapter;
         private EmployeeRepository employeeRepository = new EmployeeRepository();
         private RankRepository rankRepository = new RankRepository();
-        private readonly string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
         public AllEmployees()
         {
             InitializeComponent();
@@ -42,7 +40,7 @@ namespace EmployeesSampleApp.Windows
         public void ShowAll()
         {
             DataRowView drv = (DataRowView)RankFilter.SelectedItem;
-            pageNumber = 0;
+            //pageNumber = 0;
 
             GridView.DataSource = null;
             GridView.Rows.Clear();
@@ -90,7 +88,7 @@ namespace EmployeesSampleApp.Windows
             PageLimit.Text = pageSize.ToString();
             TotalRecords.Text = totalRows.ToString();
             currentPage = 1;
-            CurrentPage.Text = currentPage.ToString();
+            CurrentPage.Text = (pageNumber+1).ToString();
         }
 
         private void GridView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -135,6 +133,7 @@ namespace EmployeesSampleApp.Windows
         private AddOrEditEmployee FillFields()
         {
             AddOrEditEmployee aoee = new AddOrEditEmployee();
+            aoee.GetRanks();
             aoee.EmployeeId.Text = GridView.CurrentRow.Cells[0].Value.ToString();
             aoee.FirstName.Text = GridView.CurrentRow.Cells[1].Value.ToString();
             aoee.LastName.Text = GridView.CurrentRow.Cells[2].Value.ToString();
@@ -155,17 +154,17 @@ namespace EmployeesSampleApp.Windows
         {
             if (pageNumber == 0) return;
             pageNumber--;
+            ShowAll();
+            //using (SqlConnection connection = new SqlConnection(connString))
+            //{
+            //    adapter = new SqlDataAdapter(GetSql(), connection);
 
-            using (SqlConnection connection = new SqlConnection(connString))
-            {
-                adapter = new SqlDataAdapter(GetSql(), connection);
+            //    ds.Tables["Employees"].Rows.Clear();
 
-                ds.Tables["Employees"].Rows.Clear();
-
-                adapter.Fill(ds, "Employees");
-                currentPage--;
-                CurrentPage.Text = currentPage.ToString();
-            }
+            //    adapter.Fill(ds, "Employees");
+            //    currentPage--;
+            //    CurrentPage.Text = currentPage.ToString();
+            //}
         }
 
 
@@ -183,16 +182,17 @@ namespace EmployeesSampleApp.Windows
             if (ds.Tables["Employees"].Rows.Count < pageSize) return;
             if (totalPages == currentPage) return;
             pageNumber++;
-            using (SqlConnection connection = new SqlConnection(connString))
-            {
-                adapter = new SqlDataAdapter(GetSql(), connection);
+            ShowAll();
+            //using (SqlConnection connection = new SqlConnection(connString))
+            //{
+            //    adapter = new SqlDataAdapter(GetSql(), connection);
 
-                ds.Tables["Employees"].Rows.Clear();
+            //    ds.Tables["Employees"].Rows.Clear();
 
-                adapter.Fill(ds, "Employees");
-                currentPage++;
-                CurrentPage.Text = currentPage.ToString();
-            }
+            //    adapter.Fill(ds, "Employees");
+            //    currentPage++;
+            //    CurrentPage.Text = currentPage.ToString();
+            //}
 
         }
 
