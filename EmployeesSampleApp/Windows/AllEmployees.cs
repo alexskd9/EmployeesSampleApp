@@ -17,7 +17,6 @@ namespace EmployeesSampleApp.Windows
         SqlDataAdapter adapter;
         private EmployeeRepository employeeRepository = new EmployeeRepository();
         private RankRepository rankRepository = new RankRepository();
-        private DatabaseRepository databaseRepository = new DatabaseRepository();
         private readonly string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
         public AllEmployees()
         {
@@ -43,22 +42,21 @@ namespace EmployeesSampleApp.Windows
         public void ShowAll()
         {
             DataRowView drv = (DataRowView)RankFilter.SelectedItem;
+            pageNumber = 0;
 
             GridView.DataSource = null;
             GridView.Rows.Clear();
             GridView.Columns.Clear();
             GridView.Refresh();
 
-            FilterModel filter = new FilterModel()
-            {
-                FirstName = FirstNameFilter.Text,
-                LastName = LastNameFilter.Text,
-                Rank = (int)drv.Row[0],
-                MinSalary = MinSalaryFilter.Value,
-                MaxSalary = MaxSalaryFilter.Value
-            };
+            FilterModel filter = GetFilters();
 
-            GridView.DataSource = employeeRepository.GetAllEmployees(pageNumber, pageSize, filter).Tables[0];
+            if (ds != null)
+            {
+                ds.Tables["Employees"].Clear();
+            }
+            ds = employeeRepository.GetAllEmployees(pageNumber, pageSize, filter, out int totalRows);
+            GridView.DataSource = ds.Tables[0];
 
             GridView.Columns["EmployeeId"].HeaderText = "Id";
             GridView.Columns["FirstName"].HeaderText = "სახელი";
@@ -87,12 +85,10 @@ namespace EmployeesSampleApp.Windows
             col2.Name = "Delete";
             GridView.Columns.Add(col2);
 
-            int result = employeeRepository.CountAllEmployees();
-
-            totalPages = (result - 1) / pageSize + 1;
+            totalPages = (totalRows - 1) / pageSize + 1;
             TotalPages.Text = totalPages.ToString();
             PageLimit.Text = pageSize.ToString();
-            TotalRecords.Text = GridView.Rows.Count.ToString();
+            TotalRecords.Text = totalRows.ToString();
             currentPage = 1;
             CurrentPage.Text = currentPage.ToString();
         }
@@ -232,6 +228,19 @@ namespace EmployeesSampleApp.Windows
             RankFilter.DataSource = dt;
             RankFilter.DisplayMember = "Name";
             RankFilter.ValueMember = "RankId";
+        }
+
+        private FilterModel GetFilters()
+        {
+            DataRowView drv = (DataRowView)RankFilter.SelectedItem;
+            return new FilterModel()
+            {
+                FirstName = FirstNameFilter.Text,
+                LastName = LastNameFilter.Text,
+                Rank = (int)drv.Row[0],
+                MinSalary = MinSalaryFilter.Value,
+                MaxSalary = MaxSalaryFilter.Value
+            };
         }
     }
 }

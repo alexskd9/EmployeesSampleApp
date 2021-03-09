@@ -1,12 +1,7 @@
 ﻿using EmployeesSampleApp.Models;
-using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EmployeesSampleApp.Repository
 {
@@ -14,8 +9,9 @@ namespace EmployeesSampleApp.Repository
     {
         private static readonly string connString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
 
-        public DataSet GetAllEmployees(int pageNumber, int pageSize, FilterModel filter)
+        public DataSet GetAllEmployees(int pageNumber, int pageSize, FilterModel filter, out int totalRows)
         {
+            totalRows = 0;
             DataSet ds = new DataSet();
             using (SqlConnection connection = new SqlConnection(connString))
             {
@@ -29,23 +25,19 @@ namespace EmployeesSampleApp.Repository
                 adapter.SelectCommand.Parameters.Add("@Rank", SqlDbType.Int).Value = filter.Rank;
                 adapter.SelectCommand.Parameters.Add("@MinSalary", SqlDbType.Money).Value = filter.MinSalary;
                 adapter.SelectCommand.Parameters.Add("@MaxSalary", SqlDbType.Money).Value = filter.MaxSalary;
-                
+
+                SqlParameter total = new SqlParameter
+                {
+                    ParameterName = "@totalRows",
+                    SqlDbType = SqlDbType.Int,
+                    Direction = ParameterDirection.Output
+                };
+                adapter.SelectCommand.Parameters.Add(total);
+
                 adapter.Fill(ds, "Employees");
+                totalRows = (int)total.Value;
             }
             return ds;
-        }
-
-        public int CountAllEmployees()
-        {
-            int res = 0;
-            using (SqlConnection connection = new SqlConnection(connString))
-            {
-                connection.Open();
-                SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM Employees", connection);
-                object result = command.ExecuteScalar();
-                res = (int)result;
-            }
-            return res;
         }
 
         public void AddEmployee(EmployeeModel employee)
