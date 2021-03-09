@@ -17,7 +17,8 @@ namespace EmployeesSampleApp.Windows
 
         private void AddOrEditEmployee_Load(object sender, EventArgs e)
         {
-            GetRanks();
+            if (Execute.Text == "დამატება")
+                GetRanks();
         }
 
         private void Execute_Click(object sender, EventArgs e)

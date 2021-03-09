@@ -1,9 +1,8 @@
 ﻿using EmployeesSampleApp.Models;
 using EmployeesSampleApp.Repository;
 using System;
-using System.Configuration;
 using System.Data;
-using System.Data.SqlClient;
+using System.Windows.Controls;
 using System.Windows.Forms;
 
 namespace EmployeesSampleApp.Windows
@@ -12,7 +11,8 @@ namespace EmployeesSampleApp.Windows
     {
         int pageSize = 10;
         int pageNumber = 0;
-        int currentPage, totalPages;
+        int currentPage = 1;
+        int totalPages;
         DataSet ds;
         private EmployeeRepository employeeRepository = new EmployeeRepository();
         private RankRepository rankRepository = new RankRepository();
@@ -39,9 +39,6 @@ namespace EmployeesSampleApp.Windows
 
         public void ShowAll()
         {
-            DataRowView drv = (DataRowView)RankFilter.SelectedItem;
-            //pageNumber = 0;
-
             GridView.DataSource = null;
             GridView.Rows.Clear();
             GridView.Columns.Clear();
@@ -87,8 +84,7 @@ namespace EmployeesSampleApp.Windows
             TotalPages.Text = totalPages.ToString();
             PageLimit.Text = pageSize.ToString();
             TotalRecords.Text = totalRows.ToString();
-            currentPage = 1;
-            CurrentPage.Text = (pageNumber+1).ToString();
+            CurrentPage.Text = currentPage.ToString();
         }
 
         private void GridView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -145,26 +141,12 @@ namespace EmployeesSampleApp.Windows
             return aoee;
         }
 
-        private string GetSql()
-        {
-            return "SELECT e.EmployeeId, e.FirstName, e.LastName, e.MobileNumber, r.RankId, r.Name, e.Salary, e.Status FROM Employees e INNER JOIN Ranks r ON e.Rank = r.RankId ORDER BY EmployeeId OFFSET ((" + pageNumber + ") * " + pageSize + ") " + "ROWS FETCH NEXT " + pageSize + "ROWS ONLY";
-        }
-
         private void Previous_Click(object sender, EventArgs e)
         {
             if (pageNumber == 0) return;
+            currentPage--;
             pageNumber--;
             ShowAll();
-            //using (SqlConnection connection = new SqlConnection(connString))
-            //{
-            //    adapter = new SqlDataAdapter(GetSql(), connection);
-
-            //    ds.Tables["Employees"].Rows.Clear();
-
-            //    adapter.Fill(ds, "Employees");
-            //    currentPage--;
-            //    CurrentPage.Text = currentPage.ToString();
-            //}
         }
 
 
@@ -181,43 +163,39 @@ namespace EmployeesSampleApp.Windows
         {
             if (ds.Tables["Employees"].Rows.Count < pageSize) return;
             if (totalPages == currentPage) return;
+            currentPage++;
             pageNumber++;
             ShowAll();
-            //using (SqlConnection connection = new SqlConnection(connString))
-            //{
-            //    adapter = new SqlDataAdapter(GetSql(), connection);
-
-            //    ds.Tables["Employees"].Rows.Clear();
-
-            //    adapter.Fill(ds, "Employees");
-            //    currentPage++;
-            //    CurrentPage.Text = currentPage.ToString();
-            //}
 
         }
 
         private void FirstNameFilter_TextChanged(object sender, EventArgs e)
         {
+            ResetValues();
             ShowAll();
         }
 
         private void LastNameFilter_TextChanged(object sender, EventArgs e)
         {
+            ResetValues();
             ShowAll();
         }
 
         private void RankFilter_SelectedIndexChanged(object sender, EventArgs e)
         {
+            ResetValues();
             ShowAll();
         }
 
         private void MinSalaryFilter_ValueChanged(object sender, EventArgs e)
         {
+            ResetValues();
             ShowAll();
         }
 
         private void MaxSalaryFilter_ValueChanged(object sender, EventArgs e)
         {
+            ResetValues();
             ShowAll();
         }
 
@@ -241,6 +219,12 @@ namespace EmployeesSampleApp.Windows
                 MinSalary = MinSalaryFilter.Value,
                 MaxSalary = MaxSalaryFilter.Value
             };
+        }
+
+        private void ResetValues()
+        {
+            pageNumber = 0;
+            currentPage = 1;
         }
     }
 }
